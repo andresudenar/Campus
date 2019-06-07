@@ -1,3 +1,4 @@
+import 'package:campus/pages/url_screen.dart';
 import 'package:flutter/material.dart';
 import 'pages/home.dart';
 import 'pages/splashScreen.dart';
@@ -12,8 +13,8 @@ class MyApp extends StatelessWidget {
       title: 'UNI-FOSS',
       theme: ThemeData(
         brightness: Brightness.light,
-        primaryColor: Colors.red[800],
-        accentColor: Colors.redAccent[600],
+        primaryColor: Colors.deepPurple,
+        accentColor: Colors.deepPurpleAccent,
 
         // Define la Familia de fuente por defecto
         //fontFamily: 'Montserrat',
@@ -29,7 +30,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/splashScreen',
       routes: {
         // Cuando naveguemos hacia la ruta "/", crearemos el Widget FirstScreen
-        '/': (context) => Home("Uni-Foss", "Home"),
+        '/': (context) => Home("Campus", "Home"),
+        '/urlScreen': (context) => URLScreen(),
         '/splashScreen': (context) => SplashScreen(),
         //'/': (context) => Pruebas("Uni-Foss", "Home"),
 

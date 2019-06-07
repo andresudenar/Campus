@@ -1,6 +1,8 @@
 import 'dart:async';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import 'gradient_back.dart';
+import 'myPreferences.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -8,10 +10,19 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
+  MyPreferences _myPreferences = MyPreferences();
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _myPreferences.init().then((value){
+      setState((){
+        _myPreferences = value;
+      });
+    });
+
     Timer(Duration(seconds: 3), () => Navigator.pop(context, "/"));
   }
 
@@ -21,9 +32,10 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          Container(
+          GradientBack(height: null),
+          /*Container(
             decoration: BoxDecoration(color: Colors.redAccent),
-          ),
+          ),*/
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
@@ -48,12 +60,13 @@ class _SplashScreenState extends State<SplashScreen> {
                       Center(
                           child:
                           Text(
-                            'Uni-Foss',
+                            _myPreferences.url,
                             style: TextStyle(
                                 fontFamily: "Sacramento",
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 45.0),
+                                fontSize: MediaQuery.of(context).size.height/15
+                            ),
                             textAlign: TextAlign.center,
 
                           ))

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
 class MenuLista extends StatelessWidget{
-
-  final servicio;
-  final descripcion;
-  final icon;
+  final String servicio;
+  final String descripcion;
+  final String icon;
 
   Color mainColor = const Color(0xff3C3261);
   //var image_url = 'https://image.tmdb.org/t/p/w500/';
-  MenuLista(this.servicio,this.descripcion,this.icon);
+  MenuLista({Key key,@required this.servicio, @required this.descripcion,@required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +28,7 @@ class MenuLista extends StatelessWidget{
                   color: Colors.white,
                   image: new DecorationImage(
                       image: new NetworkImage(
-                          icon
+                          icon,
                       ),
                       fit: BoxFit.cover),
                   boxShadow: [

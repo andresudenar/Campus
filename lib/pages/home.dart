@@ -1,46 +1,32 @@
+import 'package:campus/pages/url_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
+import 'package:campus/pages/Constants.dart';
 import 'menuLista.dart';
-
-String url = '';
+String url;
 List path = [];
 List pathTitulos = [];
 
-ValueNotifier<Client> client = ValueNotifier(
-  Client(
-    endPoint: 'http://johnmariogb.pythonanywhere.com' + '/graphql',
-    cache: InMemoryCache(),
-  ),
-);
-
 class Home extends StatefulWidget{
-  @override
-  _HomeState createState() => new _HomeState(titulo, tipo);
   final String tipo;
   final String titulo;
-  Home(this.titulo,this.tipo);
-}
-
-class _HomeState extends State<Home> {
-
-  String tipo;
-  String titulo;
-  Color mainColor = const Color(0xff3C3261);
-
-  _HomeState(this.titulo,this.tipo){
-    this.tipo = tipo;
-    this.titulo = titulo;
-
+  Home(this.titulo,this.tipo){
     if (tipo!="Regreso") {//si contiene ese tipo no lo agregue
       path.add(tipo);//adiciona el tipo a path
       pathTitulos.add(titulo);
     }
     print(".........................Este es el pat hasta el momento "+path.toString());
   }
+  @override
+  _HomeState createState() => new _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  Color mainColor = const Color(0xff3C3261);
 
   Future<bool> _onWillPop() {
-    if(path.length>1) {
+    if(pathTitulos.length>1 && path.length>1) {
       path.removeLast();
       pathTitulos.removeLast();
       Navigator.pop(context, new MaterialPageRoute(builder: (context) {
@@ -68,11 +54,17 @@ class _HomeState extends State<Home> {
     }
   }
 
+  ValueNotifier<Client> client = ValueNotifier(
+    Client(
+      endPoint: 'http://johnmariogb.pythonanywhere.com' + '/graphql',
+      cache: InMemoryCache(),
+    ),
+  );
+
   String getQueryElementsFolder() {
     String query = 'query{__type(name:"' +path[path.length-1]+ 'Elements"){fields{name type{name ofType{name}}}}}';
     print ("Aquí estamos creando la consulta de los tipos" + query);
     return query;
-
   }
 
   String getQueryInfoElementsFolder(List elements){//información de los folders
@@ -108,6 +100,19 @@ class _HomeState extends State<Home> {
                   //fontWeight: FontWeight.bold
                 ),
               ),
+              actions: <Widget>[
+                PopupMenuButton<String>(
+                  onSelected: choiceAction,
+                  itemBuilder: (BuildContext context){
+                    return Constants.choices.map((String choice){
+                      return PopupMenuItem<String>(
+                        value: choice,
+                        child: Text(choice),
+                      );
+                    }).toList();
+                  },
+                )
+              ],
             ),
 
             body: new Center(
@@ -124,7 +129,7 @@ class _HomeState extends State<Home> {
                           client: client,
                           child: Query(
                               getQueryElementsFolder(),
-                              pollInterval: 12000,
+                              pollInterval: 120,
                               builder: ({bool loading, Map data, Exception error}) {
                                 if (error != null) {
                                   return Text("Error en la consulta");
@@ -152,7 +157,7 @@ class _HomeState extends State<Home> {
                                         return Expanded(
                                             child: Center(
                                                 child: Image.asset(
-                                                  'images/loading4.gif',
+                                                  'images/loading.gif',
                                                   height: 70.0,
                                                   fit: BoxFit.cover,
                                                 )));
@@ -170,9 +175,10 @@ class _HomeState extends State<Home> {
                                             itemBuilder: (context, i) {
                                               return new FlatButton(
                                                 child: MenuLista(
-                                                    infoElements[folderElements[i]['name']]['title'].toString(),
-                                                    infoElements[folderElements[i]['name']]['description'].toString(),
-                                                    'http://johnmariogb.pythonanywhere.commenus[i]' + infoElements[folderElements[i]['name']]['icon'].toString()),
+                                                    servicio: infoElements[folderElements[i]['name']]['title'].toString(),
+                                                    descripcion: infoElements[folderElements[i]['name']]['description'].toString(),
+                                                    icon: 'http://johnmariogb.pythonanywhere.com/menus[i]' + infoElements[folderElements[i]['name']]['icon'].toString()
+                                                ),
                                                 padding: const EdgeInsets.all(0.0),
                                                 onPressed: () {
                                                   Navigator.push(context,
@@ -191,31 +197,21 @@ class _HomeState extends State<Home> {
                                     }));
                                 //menus[0][title]
                               })),
-                      Text(url),
                     ],
                   ),
                 ))));
   }
-}
-
-class MovieTitle extends StatelessWidget {
-  final Color mainColor;
-
-  MovieTitle(this.mainColor);
-
-  @override
-  Widget build(BuildContext context) {
-    return new Padding(
-      padding: const EdgeInsets.fromLTRB(16.0, 0.0, 16.0, 16.0),
-      child: new Text(
-        'Servicos',
-        style: new TextStyle(
-            fontSize: 40.0,
-            color: mainColor,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'Arvo'),
-        textAlign: TextAlign.left,
-      ),
-    );
+  void choiceAction(String choice){
+    if(choice == Constants.url){
+      Navigator.push(context,
+          new MaterialPageRoute(builder: (context) {
+            return URLScreen();
+          }
+          )
+      );
+      print("Configurar URL");
+    }else if(choice == Constants.exit){
+      print("Salir");
+    }
   }
 }
