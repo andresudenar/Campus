@@ -83,7 +83,7 @@ class _URLScreenState extends State<URLScreen>{
                       ),
                     ),
                     elevation: 4.0,
-                    splashColor: Colors.purple,
+                    splashColor: Colors.white24,
                     onPressed: () {
                       // Perform some action
                       SaveURL();

@@ -11,18 +11,10 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
 
-  MyPreferences _myPreferences = MyPreferences();
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    _myPreferences.init().then((value){
-      setState((){
-        _myPreferences = value;
-      });
-    });
-
     Timer(Duration(seconds: 3), () => Navigator.pop(context, "/"));
   }
 
@@ -60,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       Center(
                           child:
                           Text(
-                            _myPreferences.url,
+                            "Campus",
                             style: TextStyle(
                                 fontFamily: "Sacramento",
                                 color: Colors.white,

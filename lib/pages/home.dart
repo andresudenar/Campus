@@ -1,10 +1,13 @@
+import 'package:campus/pages/queries.dart';
 import 'package:campus/pages/url_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'dart:async';
 import 'package:campus/pages/Constants.dart';
+import 'generic.dart';
 import 'menuLista.dart';
-String url;
+import 'myPreferences.dart';
+
 List path = [];
 List pathTitulos = [];
 
@@ -12,6 +15,10 @@ class Home extends StatefulWidget{
   final String tipo;
   final String titulo;
   Home(this.titulo,this.tipo){
+    if(tipo == "Home"){
+      path.clear();
+      pathTitulos.clear();
+    }
     if (tipo!="Regreso") {//si contiene ese tipo no lo agregue
       path.add(tipo);//adiciona el tipo a path
       pathTitulos.add(titulo);
@@ -24,14 +31,22 @@ class Home extends StatefulWidget{
 
 class _HomeState extends State<Home> {
   Color mainColor = const Color(0xff3C3261);
+  MyPreferences _myPreferences = MyPreferences();
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _myPreferences.init().then((value){
+      setState((){
+        _myPreferences = value;
+      });
+    });
+  }
 
   Future<bool> _onWillPop() {
     if(pathTitulos.length>1 && path.length>1) {
       path.removeLast();
       pathTitulos.removeLast();
-      Navigator.pop(context, new MaterialPageRoute(builder: (context) {
-        return Home(pathTitulos.last, "Regreso");
-      }));
+      Navigator.pop(context, '/');
     }
     else{
       return showDialog(
@@ -60,31 +75,6 @@ class _HomeState extends State<Home> {
       cache: InMemoryCache(),
     ),
   );
-
-  String getQueryElementsFolder() {
-    String query = 'query{__type(name:"' +path[path.length-1]+ 'Elements"){fields{name type{name ofType{name}}}}}';
-    print ("Aquí estamos creando la consulta de los tipos" + query);
-    return query;
-  }
-
-  String getQueryInfoElementsFolder(List elements){//información de los folders
-    String query = 'query{type}';
-    String pathElement;
-
-    for (int i = 0; i < path.length; i++) {
-      pathElement = path[i] + '{elements{type}}';
-      query = query.replaceAll('type', pathElement);
-    }
-
-    for(int i=0;i<elements.length;i++){
-      pathElement = elements[i]['name'] + '{title icon state theme description} type';
-      query = query.replaceAll('type', pathElement);
-    }
-
-    query = query.replaceAll('type', "");
-    print ("Esta es la consulta generada"+query);
-    return query;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +118,7 @@ class _HomeState extends State<Home> {
                       GraphqlProvider(
                           client: client,
                           child: Query(
-                              getQueryElementsFolder(),
+                              getQueryElementsFolder(path),
                               pollInterval: 120,
                               builder: ({bool loading, Map data, Exception error}) {
                                 if (error != null) {
@@ -136,17 +126,22 @@ class _HomeState extends State<Home> {
                                 }
                                 if (loading) {
                                   return Expanded(
-                                      child: Center(
-                                          child: Image.asset(
-                                            'images/loading.gif',
-                                            height: 70.0,
-                                            fit: BoxFit.cover,
-                                          )));
+                                    child: Center(
+                                        child: CircularProgressIndicator()
+                                    )
+                                  );
                                 }
 
                                 var folderElements = data['__type']['fields'];
                                 print("ELEMENTS FOLDER "+folderElements.toString());
-                                return (Query(getQueryInfoElementsFolder(folderElements),
+                                if(folderElements == null){
+                                  return Expanded(
+                                      child: Center(
+                                          child: CircularProgressIndicator()
+                                      )
+                                  );
+                                }
+                                return (Query(getQueryInfoElementsFolder(path, folderElements),
                                     pollInterval: 10,
                                     builder: (
                                         {bool loading, Map data, Exception error}) {
@@ -156,11 +151,9 @@ class _HomeState extends State<Home> {
                                       if (loading) {
                                         return Expanded(
                                             child: Center(
-                                                child: Image.asset(
-                                                  'images/loading.gif',
-                                                  height: 70.0,
-                                                  fit: BoxFit.cover,
-                                                )));
+                                                child: CircularProgressIndicator()
+                                            )
+                                        );
                                       }
 
                                       var infoElements = data;
@@ -168,35 +161,19 @@ class _HomeState extends State<Home> {
                                       for(int i=0;i<path.length;i++){
                                         infoElements = infoElements[path[i]]['elements'];
                                       }
-                                      print("ELEMENTS INFO 2"+infoElements.toString());
-                                      return Expanded(
-                                          child: new ListView.builder(
-                                            itemCount: folderElements == null ? 0 : folderElements.length,
-                                            itemBuilder: (context, i) {
-                                              return new FlatButton(
-                                                child: MenuLista(
-                                                    servicio: infoElements[folderElements[i]['name']]['title'].toString(),
-                                                    descripcion: infoElements[folderElements[i]['name']]['description'].toString(),
-                                                    icon: 'http://johnmariogb.pythonanywhere.com/menus[i]' + infoElements[folderElements[i]['name']]['icon'].toString()
-                                                ),
-                                                padding: const EdgeInsets.all(0.0),
-                                                onPressed: () {
-                                                  Navigator.push(context,
-                                                      new MaterialPageRoute(builder: (context) {
-                                                        if (infoElements[folderElements[i]['name']]['theme'] == null) {
-                                                          print("Tipo enviado desde aqui "+folderElements[i]['type']['name'].toString());
-                                                          return Home(infoElements[folderElements[i]['name']]['title'].toString(),folderElements[i]['type']['name'].toString());
-                                                        }
-                                                        //return Menu();
-                                                      }));
-                                                },
-                                                color: Colors.white,
-                                              );
-                                            },
-                                          ));
+                                      print("ELEMENTS INFO 2 "+infoElements.toString());
+                                      if(infoElements == null){
+                                        return Expanded(
+                                            child: Center(
+                                                child: CircularProgressIndicator()
+                                            )
+                                        );
+                                      }
+                                      return drawMenu(infoElements, folderElements, client);
                                     }));
                                 //menus[0][title]
                               })),
+                      Text(url(_myPreferences))
                     ],
                   ),
                 ))));
@@ -214,4 +191,43 @@ class _HomeState extends State<Home> {
       print("Salir");
     }
   }
+}
+
+Expanded drawMenu(var infoElements, folderElements, client){
+  return Expanded(
+  child: new ListView.builder(
+    itemCount: folderElements == null ? 0 : folderElements.length,
+    itemBuilder: (context, i) {
+      return new FlatButton(
+          child: MenuLista(
+              service: infoElements[folderElements[i]['name']]['title'].toString(),
+              description: infoElements[folderElements[i]['name']]['description'].toString(),
+              icon: 'http://johnmariogb.pythonanywhere.com/menus[i]' + infoElements[folderElements[i]['name']]['icon'].toString()
+          ),
+          padding: const EdgeInsets.all(0.0),
+          onPressed: () {
+            Navigator.push(context,
+                new MaterialPageRoute(builder: (context) {
+                  if (infoElements[folderElements[i]['name']]['theme'] == null) {
+                    print("Tipo enviado desde aqui "+folderElements[i]['type']['name'].toString());
+                    return Home(infoElements[folderElements[i]['name']]['title'].toString(),folderElements[i]['type']['name'].toString());
+                  }else if(infoElements[folderElements[i]['name']]['theme'] == "generic"){
+                    return Generic(folderElements[i]['type']['name'],path,client);
+                  }else{
+                    return Text("Tema no implementado");
+                  }
+                  //return Menu();
+                }));
+          },
+          color: Colors.transparent
+      );
+    },
+  ));
+}
+
+String url(MyPreferences _myPreferences){
+  String url= _myPreferences.url;
+  url="http://"+url+"/graphql";
+  url = url.replaceAll(' ', '');
+  return url;
 }

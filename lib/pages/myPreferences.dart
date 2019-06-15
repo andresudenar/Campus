@@ -15,14 +15,14 @@ class MyPreferences{
   factory MyPreferences()=>instance;
 
   Future<SharedPreferences> get preferences async{
-    if(_sharedPreferences != null){
-      return _sharedPreferences;
-    }else{
-      _sharedPreferences = await SharedPreferences.getInstance();
-      url = _sharedPreferences.getString(URL) ?? "";
-      return _sharedPreferences;
+      if(_sharedPreferences != null){
+        return _sharedPreferences;
+      }else{
+        _sharedPreferences = await SharedPreferences.getInstance();
+        url = _sharedPreferences.getString(URL) ?? "";
+        return _sharedPreferences;
 
-    }
+      }
 
   }
   Future<bool> commit() async {

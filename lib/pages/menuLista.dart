@@ -1,16 +1,23 @@
 import 'package:flutter/material.dart';
 
 class MenuLista extends StatelessWidget{
-  final String servicio;
-  final String descripcion;
+  final String service;
+  final String description;
   final String icon;
 
   Color mainColor = const Color(0xff3C3261);
   //var image_url = 'https://image.tmdb.org/t/p/w500/';
-  MenuLista({Key key,@required this.servicio, @required this.descripcion,@required this.icon});
+  MenuLista({Key key,@required this.service, @required this.description,@required this.icon});
 
   @override
   Widget build(BuildContext context) {
+    if(service == null || description == null || icon == null){
+      return Expanded(
+          child: Center(
+              child: CircularProgressIndicator()
+          )
+      );
+    }
     return new Column(
       children: <Widget>[
         new Row(
@@ -45,18 +52,18 @@ class MenuLista extends StatelessWidget{
                 child: new Container(
                   margin: const      EdgeInsets.fromLTRB(16.0,0.0,16.0,0.0),
                   child: new Column(children: [
-                    new Text(servicio.toString(),
+                    new Text(service.toString(),
                       style: new TextStyle(
                           fontSize: 20.0,
                           fontFamily: 'Arvo',
                           fontWeight: FontWeight.bold,
-                          color: mainColor),
+                      ),
                     ),
                     new Padding(padding: const EdgeInsets.all(2.0)),
-                    new Text(descripcion,
+                    new Text(description,
                       maxLines: 3,
                       style: new TextStyle(
-                          color: const Color(0xff8785A4),
+                          color: Colors.grey,
                           fontFamily: 'Arvo'
                       ),)
                   ],

@@ -1,3 +1,4 @@
+import 'package:campus/pages/generic.dart';
 import 'package:campus/pages/url_screen.dart';
 import 'package:flutter/material.dart';
 import 'pages/home.dart';
